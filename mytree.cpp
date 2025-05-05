@@ -9,12 +9,7 @@ bool is_hidden_entry(dirent *entry) {
 
 void print_vertical_bar(std::vector<bool> need_bits, int depth) {
   for (int i = 0; i < depth; i++) {
-    if (need_bits[i]) {
-      printf("%s  ", vertical_bar);
-    }
-    else {
-      printf("   ");
-    }
+    printf("%s  ", need_bits[i] ? vertical_bar : " ");
   }
 }
 
@@ -24,9 +19,8 @@ int get_dir_entries(std::string path, std::vector<File>& entries) {
 
   while ((entry = readdir(dir)) != NULL) {
     // 特殊ファイルは含まない
-    if (is_hidden_entry(entry)) continue;
-    
-    entries.push_back(File(entry));
+    if (!is_hidden_entry(entry)) 
+      entries.push_back(File(entry));
   }
 
   closedir(dir);
@@ -44,25 +38,19 @@ void print_dir_entries(std::string path, int depth, std::vector<bool> need_vbar_
     // 縦棒の表示
     print_vertical_bar(need_vbar_bits, depth);
 
-    if (num_entries == 0) {
-      printf("%s", half_branch);
-    }
-    else {
-      printf("%s", branch);
-    }
-  
+    printf("%s", num_entries == 0 ? half_branch : branch);
     printf("%s ", horizontal_bar);
     file.printName();
     printf("\n");
 
-    if (file.isDirectory()) {
-      std::vector<bool> new_bits = need_vbar_bits;
-      new_bits.push_back(num_entries != 0);
+    if (!file.isDirectory()) continue;
 
-      // 指定した深さ以下なら以降の中身を表示
-      if (depth + 1 <= target_depth) {
-        print_dir_entries(path + "/" + file.getName(), depth + 1, new_bits);
-      }
+    std::vector<bool> new_bits = need_vbar_bits;
+    new_bits.push_back(num_entries != 0);
+
+    // 指定した深さ以下なら以降の中身を表示
+    if (depth + 1 <= target_depth) {
+      print_dir_entries(path + "/" + file.getName(), depth + 1, new_bits);
     }
   }
 }
